@@ -1,0 +1,18 @@
+[
+    {
+    "emp_no": "E00549",
+    "name": "Isabella Xi",
+    "gender": "Female",
+    "Age": 41,
+    "Country": "United States",
+    "salary": 249270
+  },
+  {
+    "emp_no": "E02071",
+    "name": "Mateo Her",
+    "gender": "Male",
+    "Age": 44,
+    "Country": "China",
+    "salary": 207172
+  }
+]

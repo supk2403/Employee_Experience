@@ -1,0 +1,81 @@
+#%RAML 1.0
+title: task2_Exp
+version: v1
+
+
+/getData:
+  get:
+    description: Get filtered employee information from file
+    queryParameters:
+      salary: 
+        type: number
+        required: true
+    responses:
+      200:
+        description: "Data retrieved successfully"
+        body:
+          application/json:
+            example: |
+              {
+                "count": 1,
+                "data" : [{
+                  "emp_no": "1",
+                  "name": "Jane",
+                  "gender": "Female",
+                  "Age": 19,
+                  "Country": "United States",
+                  "salary": 146893
+                }]
+              }
+      400:
+        description: "Illegal file path"
+        body:
+          application/json:
+            example:
+              {
+                "status": 400,
+                "message": "Illegal file path"
+              }
+      404:
+        description: "Records not found"
+        body:
+          application/json:
+            example:
+              {
+                "status": 404,
+                "message": "Records not file"
+              }
+        
+  post:
+    description: Put employee information into file
+    queryParameters:
+      salary:
+        type: number
+        required: true
+        description: "Salary value for filterling"
+      age:
+        type: number
+        required: true
+        description: "Age value for filtering"
+      batchSize:
+        type: number
+        required: true
+        description: "Num of records to load at once"
+    responses:
+      201:
+        body:
+          application/json:
+            example: |
+              {
+                "status": "success",
+                "message": "Data created in File successfully"
+              }
+      400:
+        body:
+          application/json:
+            example:
+              {
+                "status": "Failed",
+                "message": "Data not found"
+              }
+

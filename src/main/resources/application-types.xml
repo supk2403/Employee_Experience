@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="mapping" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: string]]></types:shape>
+    </types:type>
+    <types:type name="read_map" format="csv">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: array
+items:
+    properties:
+        emp_no:
+            type: string
+        name:
+            type: string
+        gender:
+            type: string
+        age:
+            type: number
+        Country:
+            type: string
+        salary:
+            type: number]]></types:shape>
+    </types:type>
+    <types:type name="read_map2" format="json">
+      <types:shape format="weave" example="examples/input_map2.json"><![CDATA[%dw 2.0
+
+type read_map2 = Array<{|  emp_no: String,   name: String,   gender: String,   Age: Number {"typeId": "int"},   Country: String,   salary: Number {"typeId": "int"}|}> {"example": "[{\\\"emp_no\\\":\\\"E00549\\\",\\\"name\\\":\\\"Isabella Xi\\\",\\\"gender\\\":\\\"Female\\\",\\\"Age\\\":41,\\\"Country\\\":\\\"United States\\\",\\\"salary\\\":249270},{\\\"emp_no\\\":\\\"E02071\\\",\\\"name\\\":\\\"Mateo Her\\\",\\\"gender\\\":\\\"Male\\\",\\\"Age\\\":44,\\\"Country\\\":\\\"China\\\",\\\"salary\\\":207172}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#4aec1e0b-f11b-4a21-b3b3-9674acc801e3"/>
+  <types:enrichment select="#d3e257c6-9a10-4171-8224-3048847bf017">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="read_map2"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

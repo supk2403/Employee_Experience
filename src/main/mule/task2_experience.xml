@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+    <http:listener-config name="task2_experience-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="task2_experience-config" api="task2_experience.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="f1c13698-9c42-4d3b-8788-c981a8e126e9" >
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<flow name="task2_experience-main">
+        <http:listener config-ref="task2_experience-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="task2_experience-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="task2_experience-console">
+        <http:listener config-ref="task2_experience-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="task2_experience-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\getData:task2_experience-config">
+        <file:read doc:name="Read" doc:id="d3e257c6-9a10-4171-8224-3048847bf017" path="C:\Users\wonde\OneDrive\Documents\Emp_data.csv"/>
+		<logger level="INFO" doc:name="Logger" doc:id="dc95afeb-a3ab-41b3-a872-18c48523585d" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="4aec1e0b-f11b-4a21-b3b3-9674acc801e3">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	count: sizeOf(payload),
+	data: payload map ( payload01 , indexOfPayload01 ) -> {
+		emp_no: payload01.emp_no,
+		name: payload01.name,
+		gender: payload01.gender,
+		Age: payload01.age,
+		Country: payload01.Country,
+		salary: payload01.salary
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="post:\getData:task2_experience-config">
+        <set-variable value="#[attributes.queryParams.batchSize]" doc:name="Set batchSize" doc:id="657dfc24-caab-4604-865f-768bb8332551" variableName="batchSize"/>
+		<http:request method="GET" doc:name="Request" doc:id="7a8d3faa-bcd6-4e9c-b488-8b3f1a78c9a2" config-ref="HTTP_Request_configuration" url="http://localhost:8082/api/table">
+			<http:query-params ><![CDATA[#[output application/json
+---
+{
+	salary : attributes.queryParams.salary,
+	age : attributes.queryParams.age
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Choice" doc:id="21c3f83b-53b8-4c31-8c40-a51deb0429ed" >
+			<when expression="#[sizeOf(payload) != 0]">
+				<logger level="INFO" doc:name="Logger" doc:id="68f54bc2-78c6-4345-8eb3-89b21dcea7e4" message="Success, start batch process"/>
+				<set-variable value="#[sizeOf(payload)]" doc:name="Set Variable" doc:id="70176108-161c-443c-bffa-b1b7ba89d5dc" variableName="recordsCount"/>
+				<ee:transform doc:name="Transform Message" doc:id="099c3acb-1a7a-4526-a043-ca344f8edd79">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Arrays
+---
+payload divideBy vars.batchSize]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				<foreach doc:name="For Each" doc:id="e2e14773-08fe-4b0d-8829-a69583673d22" >
+					<http:request method="POST" doc:name="Request" doc:id="01ae42a2-59a9-4227-babf-79dd3e574b06" url="http://localhost:8082/api/table">
+						<http:headers ><![CDATA[#[{
+	insertType: if(vars.counter == 1) "OVERWRITE" else "APPEND"
+}]]]></http:headers>
+					</http:request>
+				</foreach>
+				<logger level="INFO" doc:name="Logger" doc:id="508ef046-3037-42d5-b625-692911a518ca" message="#[payload]"/>
+				<ee:transform doc:name="Transform Message" doc:id="ed256d62-a4de-4f38-851d-3bbca8a689bb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status": "success",
+	"message": "Data created in File successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="ERROR" doc:name="Logger" doc:id="5c7e9643-0cd4-49db-9292-17c10ba858af" message="No Record Found"/>
+				<raise-error doc:name="Raise error" doc:id="705118c4-43ae-49b2-8d19-d7b8408af3f4" type='ANY' description='"No record exists"'/>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2518d826-82a6-42b6-b49c-01d93e697f6d" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="04798fbf-bb1f-44b1-8b69-bf98352e540f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"error":error.description,
+	"type":error.errorType
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    </flow>
+</mule>
